@@ -1,0 +1,99 @@
+//IVON HERNANDEZ LAB5 
+//PANTALLA LCD
+#include <Arduino.h>
+#include <LiquidCrystal.h>
+
+// Pines del LCD
+#define en 23
+#define rs 22
+#define d4 5
+#define d5 18
+#define d6 19
+#define d7 21
+
+// Entradas analógicas y botones
+#define POT1 33
+#define POT2 34
+#define BTN1 32
+#define BTN2 35
+
+// Inicialización del LCD 
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// Variable contador de 8 bits
+uint8_t contador = 0;
+
+// Estados de botones
+bool estadoPrevioBTN1 = HIGH;
+bool estadoPrevioBTN2 = HIGH;
+
+void setup() {
+  // aqui se inicializa el LCD
+  lcd.begin(16, 2);
+
+  //encabezado fila 1 
+  lcd.setCursor(0, 0);
+  lcd.print("Pot1: Pot2: Cont:");
+
+  // Configurar pines de entrada con resistencia interna
+  pinMode(POT1, INPUT);
+  pinMode(POT2, INPUT);
+  pinMode(BTN1, INPUT_PULLUP);
+  pinMode(BTN2, INPUT_PULLUP);
+
+  // Monitor serial
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Leer valor ADC de POT1 
+  int valorPot1 = analogRead(POT1);
+
+  // Leer valor ADC de POT2 y convertirlo a voltaje
+  int valorADC2 = analogRead(POT2);
+  float voltajePot2 = (valorADC2 * 3.3) / 4095.0;
+
+  //mostrar el valor del potenciometro
+  lcd.setCursor(0, 1);   
+  lcd.print("     ");    
+  lcd.setCursor(0, 1);
+  lcd.print(valorPot1);
+
+  // mostrar el valor del voltaje por medio del potenciometro 
+  lcd.setCursor(6, 1);   
+  lcd.print("     ");    
+  lcd.setCursor(6, 1);
+  lcd.print(voltajePot2, 2);
+
+  // contador 
+  bool estadoBTN1 = digitalRead(BTN1);
+  bool estadoBTN2 = digitalRead(BTN2);
+
+  // if de boton 1
+  if (estadoPrevioBTN1 == HIGH && estadoBTN1 == LOW) {
+    if (contador < 255) contador++;
+    Serial.print("Contador: ");
+    Serial.println(contador);
+    delay(200);
+  }
+
+  //if boton 2
+  if (estadoPrevioBTN2 == HIGH && estadoBTN2 == LOW) {
+    if (contador > 0) contador--;
+    Serial.print("Contador: ");
+    Serial.println(contador);
+    delay(200);
+  }
+
+  //guardar estados 
+  estadoPrevioBTN1 = estadoBTN1;
+  estadoPrevioBTN2 = estadoBTN2;
+
+  // mostrar el contador 
+  lcd.setCursor(12, 1);  
+  lcd.print("   ");      
+  lcd.setCursor(12, 1);
+  lcd.print(contador);
+
+  delay(200); 
+}
